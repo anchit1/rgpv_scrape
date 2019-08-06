@@ -12,14 +12,7 @@ from .constants import (BASE_URL,
                         HEADERS_POST,
                         COOKIES,
                         TIMEOUT)
-def m(func):
-    def wrapper(*args, **kwargs):
-        start = time.perf_counter()
-        x = func(*args, **kwargs)
-        end = time.perf_counter()
-        print('{0} took {1}s to execute'.format(func.__name__,end-start))
-        return x
-    return wrapper
+
 
 POST_DATA = {
   '__EVENTTARGET': 'ctl00$ContentPlaceHolder1$btnviewresult',

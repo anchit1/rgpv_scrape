@@ -32,16 +32,10 @@ def scrape(college_code, branch, year, roll_num_range, sem,
     # Iterate over the roll numbers and scrape their results
     for i, num in enumerate(roll_num_list):
         result_page_src = get_result_page()
-        # print(result_page_src)
-        start = time.perf_counter()
         captcha_img = download_captcha(result_page_src)
         captcha_text = solve_captcha(captcha_img)
-        end = time.perf_counter()
 
-        start = time.perf_counter()
         result = submit_form(result_page_src, num, sem, gng, captcha_text)
-        end = time.perf_counter()
-
 
         if result == -1:  # invalid roll number
             if verbose:
