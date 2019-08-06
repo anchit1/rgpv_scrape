@@ -10,7 +10,8 @@ from .constants import (BASE_URL,
                         RESULT_SUFFIX,
                         HEADERS_GET,
                         HEADERS_POST,
-                        COOKIES)
+                        COOKIES,
+                        TIMEOUT)
 def m(func):
     def wrapper(*args, **kwargs):
         start = time.perf_counter()
@@ -113,8 +114,9 @@ def submit_form(src, roll_num, sem, gng, captcha_txt, wrong_captcha_count=0):
     POST_DATA['ctl00$ContentPlaceHolder1$TextBox1'] = captcha_txt
 
     # Sleep for some time because RGPV servers can't handle more than
-    # one request every 4 seconds :( (or it's a anti-scraping measure)
-    time.sleep(4)
+    # one request every few seconds :( (or it's a anti-scraping measure)
+    # Default value is 5 seconds. Can be changed in constants.py
+    time.sleep(TIMEOUT)
 
 
     form_response = requests.post(BASE_URL + RESULT_SUFFIX,

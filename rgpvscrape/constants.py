@@ -33,3 +33,5 @@ COOKIES = {
     '_ga': 'GA1.3.1249240305.1556177749',
     'ASP.NET_SessionId': 'aps4oz452tpuw3jnikyug145',
 }
+
+TIMEOUT = 5
