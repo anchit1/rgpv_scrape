@@ -31,6 +31,8 @@ def scrape(college_code, branch, year, roll_num_range, sem,
 
     # Iterate over the roll numbers and scrape their results
     for i, num in enumerate(roll_num_list):
+        print('Fetching {0}.'.format(num))
+
         result_page_src = get_result_page()
         captcha_img = download_captcha(result_page_src)
         captcha_text = solve_captcha(captcha_img)
@@ -39,7 +41,6 @@ def scrape(college_code, branch, year, roll_num_range, sem,
 
         if result == -1:  # invalid roll number
             if verbose:
-                #print('{0} is invalid. Skipping'.format(num))
                 invalid_user_count += 1
             continue
 
@@ -54,14 +55,14 @@ def scrape(college_code, branch, year, roll_num_range, sem,
             result['cgpa']
         ]
 
+        print('Done.')
+
         if filename is None:
             filename = '{0}_{1}_{2}_sem({3}).csv'.format(
                 branch, year, sem, college_code)
 
         df.to_csv(filename, index=False)
 
-        # if verbose:
-        #     print('{0} saved.'.format(num))
 
     if verbose:
         print('/n--------------------------------')

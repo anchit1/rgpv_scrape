@@ -85,7 +85,6 @@ def solve_captcha(image):
                    'tessedit_char_whitelist={0}'.format(char_whitelist))
     captcha_txt = pytesseract.image_to_string(Image.open(image),
                                        config=tess_config)
-    print(captcha_txt)
     return captcha_txt
 
 
@@ -126,7 +125,7 @@ def submit_form(src, roll_num, sem, gng, captcha_txt, wrong_captcha_count=0):
 
     if error == 'alert("you have entered a wrong text");':
         # Resubmit the form with new captcha
-        print('wrong captcha!')
+        print('Wrong captcha. ({0})'.format(captcha_txt))
         captcha_new_img = download_captcha(response_src)
         captcha_new_text = solve_captcha(captcha_new_img)
         wrong_captcha_count += 1
@@ -135,7 +134,7 @@ def submit_form(src, roll_num, sem, gng, captcha_txt, wrong_captcha_count=0):
             wrong_captcha_count)
 
     elif error == 'alert("Result for this Enrollment No. not Found");':
-        print('invalid roll num!!')
+        print('{0} is invalid. Skipping'.format(num))        
         return -1
 
     return (response_src, wrong_captcha_count)
