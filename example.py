@@ -8,9 +8,11 @@ import rgpvscrape as r
 # roll numbers between 0208CS161001 and 0208CS161125.
 # Note that the last 4 digits of the roll numbers are part of the
 # roll number's "range"
-r.scrape(college_code='0208',
-         branch='CS',
-         year=2016,
-         roll_num_range=(1001, 1125),
-         sem=6)
+if __name__ == '__main__':
+	r.scrape(college_code='0208',
+	         branch='CS',
+	         year=2016,
+	         roll_num_range=(1001, 1010),
+	         sem=6,
+	         n_threads=16)
 

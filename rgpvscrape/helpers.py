@@ -28,7 +28,8 @@ POST_DATA = {
 }
 
 
-def gen_roll_num_list(college_code, branch, year, roll_num_range):
+def gen_roll_num_list(
+        college_code, branch, year, roll_num_range, sem, gng='G'):
     '''
     Generates a list of roll numbers from given parameters.
     NOTE: The year has to be in short form (eg. '16' for '2016')
@@ -37,7 +38,7 @@ def gen_roll_num_list(college_code, branch, year, roll_num_range):
     range_low, range_high = roll_num_range
 
     base_roll_num = college_code + branch + str(year)[-2:]
-    roll_num_list = [base_roll_num + str(num)
+    roll_num_list = [[base_roll_num + str(num), sem, gng]
                      for num in range(range_low, range_high)]
 
     return roll_num_list
@@ -125,7 +126,7 @@ def submit_form(src, roll_num, sem, gng, captcha_txt, wrong_captcha_count=0):
 
     if error == 'alert("you have entered a wrong text");':
         # Resubmit the form with new captcha
-        print('Wrong captcha. ({0})'.format(captcha_txt))
+        print('Wrong captcha. ({0}) [{1}]'.format(captcha_txt, roll_num))
         captcha_new_img = download_captcha(response_src)
         captcha_new_text = solve_captcha(captcha_new_img)
         wrong_captcha_count += 1
@@ -134,13 +135,13 @@ def submit_form(src, roll_num, sem, gng, captcha_txt, wrong_captcha_count=0):
             wrong_captcha_count)
 
     elif error == 'alert("Result for this Enrollment No. not Found");':
-        print('{0} is invalid. Skipping'.format(num))        
+        print('{0} is invalid. Skipping'.format(roll_num))        
         return -1
 
-    return (response_src, wrong_captcha_count)
+    return parse_result(response_src, roll_num)
 
 
-def parse_result(src):
+def parse_result(src, roll_num):
     '''
     Parses the result page and returns the data in the form of a
     dictionary.
@@ -158,6 +159,7 @@ def parse_result(src):
                 for subject in grading_table}
 
     return {
+        'roll_num': roll_num,
         'name': name,
         'sgpa': sgpa,
         'cgpa': cgpa,

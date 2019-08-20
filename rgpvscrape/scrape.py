@@ -1,6 +1,8 @@
 # Author : Anchit Shukla
 # License : MIT
 import time
+import multiprocessing as mp
+import sys
 
 import pandas as pd
 
@@ -10,58 +12,61 @@ from .helpers import (gen_roll_num_list,
                       solve_captcha,
                       submit_form,
                       parse_result)
+from .constants import RECURSION_LIMIT
+
+
+sys.setrecursionlimit(RECURSION_LIMIT)
+
+
+def scrape_single(roll_num, sem, gng):
+    '''
+    This method is used by the pool class.
+    It scrapes a single record
+    '''
+
+    print('Fetching {0}.'.format(roll_num))
+
+    result_page_src = get_result_page()
+    captcha_img = download_captcha(result_page_src)
+    captcha_text = solve_captcha(captcha_img)
+
+    result = submit_form(result_page_src, roll_num, sem, gng, captcha_text)
+
+    return result
 
 
 def scrape(college_code, branch, year, roll_num_range, sem,
-            gng='G', threads=1, filename=None, verbose=True):
+            gng='G', n_threads=8, filename=None, verbose=True):
 
     # Generate a list of roll numbers to scrape
     roll_num_list = gen_roll_num_list(
-        college_code, branch, year, roll_num_range)
+        college_code, branch, year, roll_num_range, sem, gng)
 
-    # Create dataframe for storing student data
-    columns = [
-        'roll_num', 'name', 'grades', 'sgpa', 'cgpa'
-    ]
-    df = pd.DataFrame(columns=columns)
 
     # Some constats used for stats
     wrong_captcha_count = 0
     invalid_user_count = 0
 
-    # Iterate over the roll numbers and scrape their results
-    for i, num in enumerate(roll_num_list):
-        print('Fetching {0}.'.format(num))
+    # Allocate a pool of workers and start fetching student details
+    pool = mp.Pool(n_threads)
+    result_list = pool.starmap(scrape_single, roll_num_list)
+    pool.close()
+    pool.join()
+    
+    # Create dataframe for storing student data
+    result_list = [val for val in result_list if val != -1]
 
-        result_page_src = get_result_page()
-        captcha_img = download_captcha(result_page_src)
-        captcha_text = solve_captcha(captcha_img)
+    columns = [
+        'roll_num', 'name', 'sgpa', 'cgpa', 'grades'
+    ]
 
-        result = submit_form(result_page_src, num, sem, gng, captcha_text)
+    df = pd.DataFrame(columns=columns, data=result_list) 
 
-        if result == -1:  # invalid roll number
-            if verbose:
-                invalid_user_count += 1
-            continue
+    if filename is None:
+        filename = '{0}_{1}_{2}_sem({3}).csv'.format(
+            branch, year, sem, college_code)
 
-        (result_html, count) = result
-        wrong_captcha_count += count
-
-        result = parse_result(result_html)
-
-        # Save the student data
-        df.loc[i] = [
-            num, result['name'], result['grades'], result['sgpa'],
-            result['cgpa']
-        ]
-
-        print('Done.')
-
-        if filename is None:
-            filename = '{0}_{1}_{2}_sem({3}).csv'.format(
-                branch, year, sem, college_code)
-
-        df.to_csv(filename, index=False)
+    df.to_csv(filename, index=False)
 
 
     if verbose:
